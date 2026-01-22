@@ -679,8 +679,9 @@ namespace McpPlugin.Api
         /// <summary>
         /// Parses an address formula using ReClass.NET's address parser.
         /// Maps to: RemoteProcess.ParseAddress
+        /// Supports: &lt;module&gt;+offset, &lt;module&gt;, or hex/decimal math expressions.
         /// </summary>
-        [McpTool("parse_address", Description = "Parse address formula (e.g., 'module.dll+0x1234')")]
+        [McpTool("parse_address", Description = "Parse address formula (e.g., '<module>+0x1234' or hex expression)")]
         public object ParseAddress(string formula)
         {
             try
@@ -688,7 +689,8 @@ namespace McpPlugin.Api
                 if (!_host.Process.IsValid)
                     return new { error = "No process attached" };
 
-                // Use ReClass.NET's built-in address parser
+                // ReClass.NET's ParseAddress expects <module> syntax for module names
+                // or pure math expressions with hex/decimal numbers
                 var result = _host.Process.ParseAddress(formula);
 
                 return new

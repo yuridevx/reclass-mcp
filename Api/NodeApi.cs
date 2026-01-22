@@ -31,26 +31,30 @@ namespace McpPlugin.Api
         [McpTool("list_node_types", Description = "List available node types")]
         public object ListNodeTypes()
         {
-            try
+            var types = new List<object>();
+
+            foreach (var name in TypeConverter.GetAllTypeNames())
             {
-                var types = TypeConverter.GetAllTypeNames().Select(name =>
+                try
                 {
                     var nodeType = TypeConverter.GetNodeType(name);
+                    if (nodeType == null) continue;
+
                     var node = (BaseNode)Activator.CreateInstance(nodeType);
-                    return new
+                    types.Add(new
                     {
                         name,
                         size = node.MemorySize,
                         category = GetNodeCategory(nodeType)
-                    };
-                }).OrderBy(t => t.category).ThenBy(t => t.name);
+                    });
+                }
+                catch
+                {
+                    // Skip types that can't be instantiated
+                }
+            }
 
-                return new { types };
-            }
-            catch (Exception ex)
-            {
-                return new { error = ex.Message };
-            }
+            return new { types = types.OrderBy(t => ((dynamic)t).category).ThenBy(t => ((dynamic)t).name) };
         }
 
         /// <summary>

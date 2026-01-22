@@ -126,7 +126,13 @@ namespace McpPlugin.Api
                 }
 
                 var enumDesc = new EnumDescription { Name = name };
-                enumDesc.SetData(useFlagsMode, enumSize.Value, new List<KeyValuePair<string, long>>());
+
+                // Initialize with a default value to avoid empty sequence errors
+                var initialValues = new List<KeyValuePair<string, long>>
+                {
+                    new KeyValuePair<string, long>("None", 0)
+                };
+                enumDesc.SetData(useFlagsMode, enumSize.Value, initialValues);
 
                 project.AddEnum(enumDesc);
 
