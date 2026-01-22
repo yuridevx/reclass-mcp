@@ -33,25 +33,15 @@ jobs:
     - name: Restore NuGet packages
       run: nuget restore ReClass.NET/ReClass.NET.sln
 
-    - name: Build x86
-      run: msbuild ReClass.NET/ReClass.NET.McpPlugin/ReClass.NET.McpPlugin.csproj /p:Configuration=Release /p:Platform=x86 /p:SolutionDir=ReClass.NET/
-
     - name: Build x64
-      run: msbuild ReClass.NET/ReClass.NET.McpPlugin/ReClass.NET.McpPlugin.csproj /p:Configuration=Release /p:Platform=x64 /p:SolutionDir=ReClass.NET/
+      run: msbuild ReClass.NET/ReClass.NET.McpPlugin/ReClass.NET.McpPlugin.csproj /p:Configuration=Release /p:Platform=x64 /p:SolutionDir=${{ github.workspace }}\ReClass.NET\
+      shell: cmd
 
     - name: Prepare artifacts
       run: |
-        mkdir -p artifacts/x86
         mkdir -p artifacts/x64
-        cp ReClass.NET/bin/Release/x86/Plugins/McpPlugin.dll artifacts/x86/
-        cp ReClass.NET/bin/Release/x64/Plugins/McpPlugin.dll artifacts/x64/
+        cp "${{ github.workspace }}/ReClass.NET/bin/Release/x64/Plugins/McpPlugin.dll" artifacts/x64/
       shell: bash
-
-    - name: Upload x86 artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: McpPlugin-x86
-        path: artifacts/x86/McpPlugin.dll
 
     - name: Upload x64 artifact
       uses: actions/upload-artifact@v4
@@ -65,29 +55,19 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
-    - name: Download x86 artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: McpPlugin-x86
-        path: x86
-
     - name: Download x64 artifact
       uses: actions/download-artifact@v4
       with:
         name: McpPlugin-x64
         path: x64
 
-    - name: Create zip archives
-      run: |
-        cd x86 && zip ../McpPlugin-x86.zip McpPlugin.dll && cd ..
-        cd x64 && zip ../McpPlugin-x64.zip McpPlugin.dll && cd ..
+    - name: Create zip archive
+      run: cd x64 && zip ../McpPlugin-x64.zip McpPlugin.dll
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: |
-          McpPlugin-x86.zip
-          McpPlugin-x64.zip
+        files: McpPlugin-x64.zip
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
